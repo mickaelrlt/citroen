@@ -54,7 +54,7 @@ function Index() {
   useEffect(() => setPerm("Notification" in window ? Notification.permission : "unsupported"), []);
 
   const rappels = [
-    ...offres.map((i) => ({ ...i, type: "Offre", to: "/_authenticated/offres" as const })),
+    ...offres.map((i) => ({ ...i, type: "Offre", to: "/offres" as const })),
     ...commandes.map((i) => ({ ...i, type: "Commande", to: "/commandes" as const })),
   ]
     .filter((i) => i.rappelDate)
@@ -65,7 +65,7 @@ function Index() {
   const bientot = rappels.filter((r) => new Date(String(r.rappelDate)).getTime() <= limit);
   const plusTard = rappels.filter((r) => new Date(String(r.rappelDate)).getTime() > limit);
   const stats = [
-    { label: "Clients offre", n: offres.length, icon: Users, to: "/_authenticated/offres" as const },
+    { label: "Clients offre", n: offres.length, icon: Users, to: "/offres" as const },
     { label: "Commandes", n: commandes.length, icon: FileCheck2, to: "/commandes" as const },
     { label: "Véhicules direction", n: direction.length, icon: Car, to: "/direction" as const },
   ];
