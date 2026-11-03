@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CrudPage } from "@/components/CrudPage";
 import { euro } from "@/lib/store";
 
-export const Route = createFileRoute("/offres")({
+export const Route = createFileRoute("/_authenticated/offres")({
   head: () => ({
     meta: [
       { title: "Clients offre — Carnet Vendeur" },

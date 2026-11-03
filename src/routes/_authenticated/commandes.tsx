@@ -11,7 +11,7 @@ export const STATUTS = [
   "Livré",
 ];
 
-export const Route = createFileRoute("/commandes")({
+export const Route = createFileRoute("/_authenticated/commandes")({
   head: () => ({
     meta: [
       { title: "Clients commande — Carnet Vendeur" },
