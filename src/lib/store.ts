@@ -7,6 +7,11 @@ export interface BaseItem {
   rappelDate?: string;
   rappelRaison?: string;
   rappelNotified?: boolean;
+  prenom?: unknown; nom?: unknown; tel?: unknown; email?: unknown; adresse?: unknown;
+  modele?: unknown; financement?: unknown; detailOffre?: unknown; repriseVehicule?: unknown;
+  repriseMontant?: unknown; repriseDate?: unknown; note?: unknown; statuts?: unknown; etat?: unknown;
+  immat?: unknown; chassis?: unknown; livraison?: unknown; prix?: unknown; finition?: unknown;
+  options?: unknown; dateImmat?: unknown; affectation?: unknown; assurance?: unknown; carteGrise?: unknown;
   [key: string]: unknown;
 }
 
