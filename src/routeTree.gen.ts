@@ -9,104 +9,109 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as CommandesRouteImport } from './routes/commandes'
-import { Route as DirectionRouteImport } from './routes/direction'
-import { Route as OffresRouteImport } from './routes/offres'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedCommandesRouteImport } from './routes/_authenticated/commandes'
+import { Route as AuthenticatedDirectionRouteImport } from './routes/_authenticated/direction'
+import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CommandesRoute = CommandesRouteImport.update({
-  id: '/commandes',
+const AuthenticatedCommandesRoute = AuthenticatedCommandesRouteImport.update({
+  id: '/_authenticated/commandes',
   path: '/commandes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DirectionRoute = DirectionRouteImport.update({
-  id: '/direction',
+const AuthenticatedDirectionRoute = AuthenticatedDirectionRouteImport.update({
+  id: '/_authenticated/direction',
   path: '/direction',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OffresRoute = OffresRouteImport.update({
-  id: '/offres',
+const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
+  id: '/_authenticated/offres',
   path: '/offres',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/commandes': typeof AuthenticatedCommandesRoute
+  '/direction': typeof AuthenticatedDirectionRoute
+  '/offres': typeof AuthenticatedOffresRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/commandes': typeof AuthenticatedCommandesRoute
+  '/direction': typeof AuthenticatedDirectionRoute
+  '/offres': typeof AuthenticatedOffresRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/_authenticated/commandes': typeof AuthenticatedCommandesRoute
+  '/_authenticated/direction': typeof AuthenticatedDirectionRoute
+  '/_authenticated/offres': typeof AuthenticatedOffresRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/commandes' | '/direction' | '/offres'
+  fullPaths: '/commandes' | '/direction' | '/offres' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/commandes' | '/direction' | '/offres'
-  id: '__root__' | '/' | '/commandes' | '/direction' | '/offres'
+  to: '/commandes' | '/direction' | '/offres' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated/commandes'
+    | '/_authenticated/direction'
+    | '/_authenticated/offres'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  CommandesRoute: typeof CommandesRoute
-  DirectionRoute: typeof DirectionRoute
-  OffresRoute: typeof OffresRoute
+  AuthenticatedCommandesRoute: typeof AuthenticatedCommandesRoute
+  AuthenticatedDirectionRoute: typeof AuthenticatedDirectionRoute
+  AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/commandes': {
-      id: '/commandes'
+    '/_authenticated/commandes': {
+      id: '/_authenticated/commandes'
       path: '/commandes'
       fullPath: '/commandes'
-      preLoaderRoute: typeof CommandesRouteImport
+      preLoaderRoute: typeof AuthenticatedCommandesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/direction': {
-      id: '/direction'
+    '/_authenticated/direction': {
+      id: '/_authenticated/direction'
       path: '/direction'
       fullPath: '/direction'
-      preLoaderRoute: typeof DirectionRouteImport
+      preLoaderRoute: typeof AuthenticatedDirectionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/offres': {
-      id: '/offres'
+    '/_authenticated/offres': {
+      id: '/_authenticated/offres'
       path: '/offres'
       fullPath: '/offres'
-      preLoaderRoute: typeof OffresRouteImport
+      preLoaderRoute: typeof AuthenticatedOffresRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  CommandesRoute: CommandesRoute,
-  DirectionRoute: DirectionRoute,
-  OffresRoute: OffresRoute,
+  AuthenticatedCommandesRoute: AuthenticatedCommandesRoute,
+  AuthenticatedDirectionRoute: AuthenticatedDirectionRoute,
+  AuthenticatedOffresRoute: AuthenticatedOffresRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

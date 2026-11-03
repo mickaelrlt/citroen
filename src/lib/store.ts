@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
-
-export type Financement = "LOA" | "LLD" | "COMPTANT";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BaseItem {
   id: string;
@@ -8,93 +7,84 @@ export interface BaseItem {
   rappelDate?: string;
   rappelRaison?: string;
   rappelNotified?: boolean;
-  prenom?: unknown;
-  nom?: unknown;
-  tel?: unknown;
-  email?: unknown;
-  adresse?: unknown;
-  modele?: unknown;
-  financement?: unknown;
-  detailOffre?: unknown;
-  repriseVehicule?: unknown;
-  repriseMontant?: unknown;
-  note?: unknown;
-  statut?: unknown;
-  etat?: unknown;
-  immat?: unknown;
-  chassis?: unknown;
-  livraison?: unknown;
-  prix?: unknown;
-  finition?: unknown;
-  options?: unknown;
   [key: string]: unknown;
 }
 
-export const COLLECTIONS = {
-  offres: "citro-offres",
-  commandes: "citro-commandes",
-  direction: "citro-direction",
-} as const;
-export type CollectionKey = keyof typeof COLLECTIONS;
+export const COLLECTIONS = ["offres", "commandes", "direction"] as const;
+export type CollectionKey = (typeof COLLECTIONS)[number];
 
-const cache = new Map<string, BaseItem[]>();
-const listeners = new Set<() => void>();
+type State = Record<CollectionKey, BaseItem[]>;
 const EMPTY: BaseItem[] = [];
+let state: State = { offres: [], commandes: [], direction: [] };
+let loaded = false;
+const listeners = new Set<() => void>();
+const emit = () => listeners.forEach((l) => l());
 
-function read(key: CollectionKey): BaseItem[] {
-  const k = COLLECTIONS[key];
-  if (!cache.has(k)) {
-    try {
-      cache.set(k, JSON.parse(localStorage.getItem(k) || "[]"));
-    } catch {
-      cache.set(k, []);
-    }
-  }
-  return cache.get(k)!;
+function setCol(key: CollectionKey, items: BaseItem[]) {
+  state = { ...state, [key]: items };
+  emit();
 }
+
+export async function loadAll() {
+  const { data, error } = await supabase.from("items").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  const next: State = { offres: [], commandes: [], direction: [] };
+  for (const r of data ?? []) {
+    const k = r.collection as CollectionKey;
+    if (!next[k]) continue;
+    next[k].push({ ...(r.data as object), id: r.id, createdAt: r.created_at } as BaseItem);
+  }
+  state = next;
+  loaded = true;
+  emit();
+}
+
+export function clearAll() {
+  state = { offres: [], commandes: [], direction: [] };
+  loaded = false;
+  emit();
+}
+
+export const isLoaded = () => loaded;
 
 export function getAll(key: CollectionKey) {
-  return typeof window === "undefined" ? EMPTY : read(key);
+  return state[key];
 }
 
-export function save(key: CollectionKey, items: BaseItem[]) {
-  const k = COLLECTIONS[key];
-  cache.set(k, items);
-  localStorage.setItem(k, JSON.stringify(items));
-  listeners.forEach((l) => l());
+function payload(item: Partial<BaseItem>) {
+  const { id: _i, createdAt: _c, ...rest } = item;
+  return rest as Record<string, unknown>;
 }
 
-export function upsert(key: CollectionKey, item: Partial<BaseItem>) {
-  const items = read(key);
+export async function upsert(key: CollectionKey, item: Partial<BaseItem>) {
+  const items = state[key];
   if (item.id) {
-    save(key, items.map((i) => (i.id === item.id ? { ...i, ...item } as BaseItem : i)));
+    const merged = { ...items.find((i) => i.id === item.id), ...item } as BaseItem;
+    setCol(key, items.map((i) => (i.id === item.id ? merged : i)));
+    const { error } = await supabase.from("items").update({ data: payload(merged) as never }).eq("id", item.id);
+    if (error) throw error;
   } else {
-    save(key, [
-      { ...item, id: crypto.randomUUID(), createdAt: new Date().toISOString() } as BaseItem,
-      ...items,
-    ]);
+    const id = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+    setCol(key, [{ ...item, id, createdAt } as BaseItem, ...items]);
+    const { error } = await supabase.from("items").insert({ id, collection: key, data: payload(item) as never });
+    if (error) throw error;
   }
 }
 
-export function remove(key: CollectionKey, id: string) {
-  save(key, read(key).filter((i) => i.id !== id));
+export async function remove(key: CollectionKey, id: string) {
+  setCol(key, state[key].filter((i) => i.id !== id));
+  const { error } = await supabase.from("items").delete().eq("id", id);
+  if (error) throw error;
 }
 
 function subscribe(cb: () => void) {
   listeners.add(cb);
-  const onStorage = () => {
-    cache.clear();
-    cb();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(cb);
-    window.removeEventListener("storage", onStorage);
-  };
+  return () => listeners.delete(cb);
 }
 
 export function useCollection(key: CollectionKey) {
-  return useSyncExternalStore(subscribe, () => read(key), () => EMPTY);
+  return useSyncExternalStore(subscribe, () => state[key], () => EMPTY);
 }
 
 export const euro = (v: unknown) =>
