@@ -9,6 +9,16 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { LayoutDashboard, Users, FileCheck2, Car } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
+import { ReminderWatcher } from "@/components/ReminderWatcher";
+
+const NAV = [
+  { to: "/", label: "Accueil", icon: LayoutDashboard },
+  { to: "/offres", label: "Offres", icon: Users },
+  { to: "/commandes", label: "Commandes", icon: FileCheck2 },
+  { to: "/direction", label: "Direction", icon: Car },
+] as const;
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -78,20 +88,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Carnet Vendeur" },
+      { name: "description", content: "Carnet du vendeur automobile : offres, commandes, véhicules de direction." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -121,7 +130,36 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="min-h-screen pb-24 md:pb-0">
+        <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+            <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
+              <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">C</span>
+              Carnet Vendeur
+            </Link>
+            <nav className="hidden gap-1 md:flex">
+              {NAV.map((n) => (
+                <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-link">
+                  <n.icon className="size-4" /> {n.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </header>
+        <main className="mx-auto max-w-6xl px-4 py-8">
+          <Outlet />
+        </main>
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+          {NAV.map((n) => (
+            <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
+              <n.icon className="size-5" />
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <ReminderWatcher />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
