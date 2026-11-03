@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CrudPage } from "@/components/CrudPage";
-import { euro } from "@/lib/store";
+import { euro, fmtDate } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/offres")({
   head: () => ({
@@ -24,12 +24,13 @@ export const Route = createFileRoute("/_authenticated/offres")({
         { name: "tel", label: "Téléphone", type: "tel", section: "Client" },
         { name: "email", label: "E-mail", type: "email", section: "Client" },
         { name: "adresse", label: "Adresse", section: "Client", full: true },
-        { name: "note", label: "Note (ex : client indécis pour une C3)", type: "textarea", section: "Client" },
+        { name: "note", label: "Note", type: "textarea", section: "Client" },
         { name: "modele", label: "Véhicule proposé", section: "Offre" },
         { name: "financement", label: "Financement", type: "select", options: ["LOA", "LLD", "COMPTANT"], section: "Offre" },
         { name: "detailOffre", label: "Détail de l'offre (loyer, durée, apport…)", type: "textarea", section: "Offre" },
         { name: "repriseVehicule", label: "Véhicule repris", section: "Reprise" },
         { name: "repriseMontant", label: "Montant de reprise (€)", type: "number", section: "Reprise" },
+        { name: "repriseDate", label: "Date de reprise", type: "date", section: "Reprise" },
       ]}
       cardTitle={(i) => [i.prenom, i.nom].filter(Boolean).join(" ") || "Client sans nom"}
       cardTags={(i) => [String(i.financement ?? ""), String(i.modele ?? "")]}
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/offres")({
           {i.tel ? <p>📞 <a className="underline" href={`tel:${i.tel}`}>{String(i.tel)}</a></p> : null}
           {i.email ? <p>✉️ {String(i.email)}</p> : null}
           {i.repriseVehicule || i.repriseMontant ? (
-            <p>Reprise : {String(i.repriseVehicule ?? "")} {euro(i.repriseMontant)}</p>
+            <p>Reprise : {String(i.repriseVehicule ?? "")} {euro(i.repriseMontant)}{i.repriseDate ? ` · le ${fmtDate(i.repriseDate)}` : ""}</p>
           ) : null}
           {i.note ? <p className="italic text-foreground">« {String(i.note)} »</p> : null}
         </>
