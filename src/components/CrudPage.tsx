@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { useCollection, upsert, remove, fmtDate, type BaseItem, type CollectionKey } from "@/lib/store";
 
 export interface Field {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "number" | "date" | "datetime-local" | "tel" | "email";
+  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email";
   options?: string[];
   section?: string;
   full?: boolean;
@@ -25,6 +26,7 @@ interface Props {
   cardTitle: (i: BaseItem) => string;
   cardMeta: (i: BaseItem) => ReactNode;
   cardTags: (i: BaseItem) => string[];
+  tagColors?: Record<string, string>;
   newLabel: string;
 }
 
@@ -49,8 +51,9 @@ export function CrudPage(p: Props) {
 
   const sections = Array.from(new Set(allFields.map((f) => f.section ?? "")));
 
-  const set = (k: string, v: string) =>
+  const set = (k: string, v: unknown) =>
     setEditing((e) => ({ ...e, [k]: v, ...(k === "rappelDate" ? { rappelNotified: false } : {}) }));
+  const fail = () => toast.error("Enregistrement impossible, vérifiez votre connexion");
 
   return (
     <div className="space-y-6">
@@ -87,7 +90,7 @@ export function CrudPage(p: Props) {
                     variant="ghost"
                     size="icon"
                     aria-label="Supprimer"
-                    onClick={() => confirm("Supprimer cet élément ?") && remove(p.collection, i.id)}
+                    onClick={() => confirm("Supprimer cet élément ?") && remove(p.collection, i.id).catch(fail)}
                   >
                     <Trash2 />
                   </Button>
@@ -95,7 +98,7 @@ export function CrudPage(p: Props) {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {p.cardTags(i).filter(Boolean).map((t) => (
-                  <span key={t} className="tag">{t}</span>
+                  <span key={t} className={`tag ${p.tagColors?.[t] ?? ""}`}>{t}</span>
                 ))}
               </div>
               <div className="space-y-1 text-sm text-muted-foreground">{p.cardMeta(i)}</div>
@@ -123,7 +126,7 @@ export function CrudPage(p: Props) {
             className="space-y-6"
             onSubmit={(e) => {
               e.preventDefault();
-              upsert(p.collection, editing!);
+              upsert(p.collection, editing!).catch(fail);
               setEditing(null);
             }}
           >
@@ -133,11 +136,30 @@ export function CrudPage(p: Props) {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {allFields.filter((f) => (f.section ?? "") === s).map((f) => {
                     const v = String(editing?.[f.name] ?? "");
+                    const arr = Array.isArray(editing?.[f.name]) ? (editing![f.name] as string[]) : [];
                     return (
-                      <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "textarea" ? "sm:col-span-2" : ""}`}>
+                      <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "textarea" || f.type === "multi" ? "sm:col-span-2" : ""}`}>
                         <Label htmlFor={f.name}>{f.label}</Label>
                         {f.type === "textarea" ? (
                           <Textarea id={f.name} value={v} onChange={(e) => set(f.name, e.target.value)} />
+                        ) : f.type === "multi" ? (
+                          <div className="flex flex-wrap gap-2">
+                            {f.options!.map((o) => {
+                              const on = arr.includes(o);
+                              return (
+                                <button
+                                  type="button"
+                                  key={o}
+                                  aria-pressed={on}
+                                  onClick={() => set(f.name, on ? arr.filter((x) => x !== o) : [...arr, o])}
+                                  className={`tag cursor-pointer px-3 py-1.5 text-sm transition ${on ? p.tagColors?.[o] ?? "" : "opacity-60"}`}
+                                >
+                                  <span className={`mr-1.5 inline-block size-3.5 rounded-sm border ${on ? "bg-current" : ""}`} />
+                                  {o}
+                                </button>
+                              );
+                            })}
+                          </div>
                         ) : f.type === "select" ? (
                           <select id={f.name} className="select-native" value={v} onChange={(e) => set(f.name, e.target.value)}>
                             <option value="">—</option>
