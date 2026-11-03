@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- App data lives in one `items` table (collection + jsonb data, owner-scoped RLS) via src/lib/store.ts; pages sit under `_authenticated` — keeps per-user data synced across devices.

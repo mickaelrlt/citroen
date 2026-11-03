@@ -5,13 +5,19 @@ import { fmtDate } from "@/lib/store";
 export const STATUTS = [
   "Papiers non reçus",
   "Papiers OK",
-  "Financement en attente d'accord",
-  "Financement accordé",
+  "Financement en attente",
   "En attente de livraison",
   "Livré",
 ];
+const STATUT_COLORS: Record<string, string> = {
+  "Papiers non reçus": "tag-red",
+  "Papiers OK": "tag-green",
+  "Financement en attente": "tag-orange",
+  "En attente de livraison": "tag-green",
+  "Livré": "tag-blue",
+};
 
-export const Route = createFileRoute("/commandes")({
+export const Route = createFileRoute("/_authenticated/commandes")({
   head: () => ({
     meta: [
       { title: "Clients commande — Carnet Vendeur" },
@@ -31,7 +37,7 @@ export const Route = createFileRoute("/commandes")({
         { name: "prenom", label: "Prénom", section: "Client" },
         { name: "nom", label: "Nom", section: "Client" },
         { name: "tel", label: "Téléphone", type: "tel", section: "Client" },
-        { name: "statut", label: "Statut", type: "select", options: STATUTS, section: "Client" },
+        { name: "statuts", label: "Statuts (plusieurs possibles)", type: "multi", options: STATUTS, section: "Client" },
         { name: "etat", label: "Neuf / Occasion", type: "select", options: ["Neuf", "Occasion"], section: "Véhicule" },
         { name: "modele", label: "Modèle", section: "Véhicule" },
         { name: "immat", label: "Immatriculation", section: "Véhicule" },
@@ -41,7 +47,8 @@ export const Route = createFileRoute("/commandes")({
         { name: "note", label: "Note", type: "textarea", section: "Véhicule" },
       ]}
       cardTitle={(i) => [i.prenom, i.nom].filter(Boolean).join(" ") || String(i.modele ?? "Commande")}
-      cardTags={(i) => [String(i.statut ?? ""), String(i.etat ?? ""), String(i.financement ?? "")]}
+      tagColors={STATUT_COLORS}
+      cardTags={(i) => [...(Array.isArray(i.statuts) ? (i.statuts as string[]) : []), String(i.etat ?? ""), String(i.financement ?? "")]}
       cardMeta={(i) => (
         <>
           <p className="font-medium text-foreground">{String(i.modele ?? "")} {i.immat ? `· ${i.immat}` : ""}</p>

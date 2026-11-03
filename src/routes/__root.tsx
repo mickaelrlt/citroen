@@ -8,10 +8,12 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
-import { LayoutDashboard, Users, FileCheck2, Car } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { LayoutDashboard, Users, FileCheck2, Car, LogOut } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
-import { ReminderWatcher } from "@/components/ReminderWatcher";
+import { Logo } from "@/components/Logo";
+import { supabase } from "@/integrations/supabase/client";
+import { loadAll, clearAll } from "@/lib/store";
 
 const NAV = [
   { to: "/", label: "Accueil", icon: LayoutDashboard },
@@ -126,39 +128,63 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      setEmail(session?.user?.email ?? null);
+      if (event === "SIGNED_OUT") clearAll();
+      else loadAll().catch(() => {});
+      router.invalidate();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [router]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    clearAll();
+    router.navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <div className="min-h-screen pb-24 md:pb-0">
-        <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
-          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-            <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
-              <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">C</span>
-              Carnet Vendeur
-            </Link>
-            <nav className="hidden gap-1 md:flex">
-              {NAV.map((n) => (
-                <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-link">
-                  <n.icon className="size-4" /> {n.label}
-                </Link>
-              ))}
-            </nav>
+        <header className="sticky top-0 z-30 border-b bg-card/80 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+            <Link to="/"><Logo /></Link>
+            {email && (
+              <div className="flex items-center gap-2">
+                <nav className="hidden gap-1 md:flex">
+                  {NAV.map((n) => (
+                    <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-link">
+                      <n.icon className="size-4" /> {n.label}
+                    </Link>
+                  ))}
+                </nav>
+                <button onClick={signOut} className="nav-link" title={email} aria-label="Se déconnecter">
+                  <LogOut className="size-4" /> <span className="hidden lg:inline">Déconnexion</span>
+                </button>
+              </div>
+            )}
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8">
           <Outlet />
         </main>
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-          {NAV.map((n) => (
-            <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
-              <n.icon className="size-5" />
-              {n.label}
-            </Link>
-          ))}
-        </nav>
+        {email && (
+          <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+            {NAV.map((n) => (
+              <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
+                <n.icon className="size-5" />
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
-      <ReminderWatcher />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );

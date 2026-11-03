@@ -9,104 +9,153 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as CommandesRouteImport } from './routes/commandes'
-import { Route as DirectionRouteImport } from './routes/direction'
-import { Route as OffresRouteImport } from './routes/offres'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedCommandesRouteImport } from './routes/_authenticated/commandes'
+import { Route as AuthenticatedDirectionRouteImport } from './routes/_authenticated/direction'
+import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const CommandesRoute = CommandesRouteImport.update({
+const AuthenticatedCommandesRoute = AuthenticatedCommandesRouteImport.update({
   id: '/commandes',
   path: '/commandes',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const DirectionRoute = DirectionRouteImport.update({
+const AuthenticatedDirectionRoute = AuthenticatedDirectionRouteImport.update({
   id: '/direction',
   path: '/direction',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const OffresRoute = OffresRouteImport.update({
+const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
   id: '/offres',
   path: '/offres',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/commandes': typeof AuthenticatedCommandesRoute
+  '/direction': typeof AuthenticatedDirectionRoute
+  '/offres': typeof AuthenticatedOffresRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/auth': typeof AuthRoute
+  '/commandes': typeof AuthenticatedCommandesRoute
+  '/direction': typeof AuthenticatedDirectionRoute
+  '/offres': typeof AuthenticatedOffresRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/commandes': typeof CommandesRoute
-  '/direction': typeof DirectionRoute
-  '/offres': typeof OffresRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/commandes': typeof AuthenticatedCommandesRoute
+  '/_authenticated/direction': typeof AuthenticatedDirectionRoute
+  '/_authenticated/offres': typeof AuthenticatedOffresRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/commandes' | '/direction' | '/offres'
+  fullPaths: '/' | '/auth' | '/commandes' | '/direction' | '/offres'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/commandes' | '/direction' | '/offres'
-  id: '__root__' | '/' | '/commandes' | '/direction' | '/offres'
+  to: '/auth' | '/commandes' | '/direction' | '/offres' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/commandes'
+    | '/_authenticated/direction'
+    | '/_authenticated/offres'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  CommandesRoute: typeof CommandesRoute
-  DirectionRoute: typeof DirectionRoute
-  OffresRoute: typeof OffresRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/commandes': {
-      id: '/commandes'
+    '/_authenticated/commandes': {
+      id: '/_authenticated/commandes'
       path: '/commandes'
       fullPath: '/commandes'
-      preLoaderRoute: typeof CommandesRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedCommandesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/direction': {
-      id: '/direction'
+    '/_authenticated/direction': {
+      id: '/_authenticated/direction'
       path: '/direction'
       fullPath: '/direction'
-      preLoaderRoute: typeof DirectionRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedDirectionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/offres': {
-      id: '/offres'
+    '/_authenticated/offres': {
+      id: '/_authenticated/offres'
       path: '/offres'
       fullPath: '/offres'
-      preLoaderRoute: typeof OffresRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedOffresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCommandesRoute: typeof AuthenticatedCommandesRoute
+  AuthenticatedDirectionRoute: typeof AuthenticatedDirectionRoute
+  AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCommandesRoute: AuthenticatedCommandesRoute,
+  AuthenticatedDirectionRoute: AuthenticatedDirectionRoute,
+  AuthenticatedOffresRoute: AuthenticatedOffresRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  CommandesRoute: CommandesRoute,
-  DirectionRoute: DirectionRoute,
-  OffresRoute: OffresRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
