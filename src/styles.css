@@ -97,7 +97,11 @@
   --sidebar-accent-foreground: oklch(0.3 0.05 25);
   --sidebar-border: oklch(0.9 0.008 260);
   --sidebar-ring: oklch(0.56 0.22 25);
-  --shadow-card: 0 1px 2px oklch(0.2 0.02 260 / 6%), 0 8px 24px -12px oklch(0.2 0.02 260 / 18%);
+  --shadow-card: 0 1px 2px oklch(0.2 0.02 260 / 5%), 0 12px 32px -16px oklch(0.2 0.02 260 / 22%);
+  --st-red: oklch(0.58 0.22 25);
+  --st-green: oklch(0.6 0.16 150);
+  --st-orange: oklch(0.72 0.17 60);
+  --st-blue: oklch(0.56 0.18 255);
 }
 
 @layer base {
@@ -107,16 +111,24 @@
 
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(60rem 30rem at 100% -10%, oklch(0.56 0.22 25 / 9%), transparent 60%),
+      radial-gradient(40rem 25rem at -10% 10%, oklch(0.56 0.18 255 / 6%), transparent 60%);
+    background-attachment: fixed;
     color: var(--color-foreground);
   }
 }
 
 @layer components {
-  .card-surface { @apply rounded-xl border bg-card text-card-foreground; box-shadow: var(--shadow-card); }
+  .card-surface { @apply rounded-2xl border bg-card/90 text-card-foreground backdrop-blur; box-shadow: var(--shadow-card); }
   .tag { @apply inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-secondary-foreground; }
+  .tag-red { background: color-mix(in oklab, var(--st-red) 14%, transparent); color: var(--st-red); }
+  .tag-green { background: color-mix(in oklab, var(--st-green) 16%, transparent); color: var(--st-green); }
+  .tag-orange { background: color-mix(in oklab, var(--st-orange) 18%, transparent); color: oklch(0.55 0.15 55); }
+  .tag-blue { background: color-mix(in oklab, var(--st-blue) 14%, transparent); color: var(--st-blue); }
   .select-native { @apply h-9 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring; }
-  .nav-link { @apply flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground; }
-  .nav-link[data-status="active"] { @apply bg-accent text-primary; }
+  .nav-link { @apply flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground; }
+  .nav-link[data-status="active"] { @apply bg-primary text-primary-foreground; }
   .nav-tab { @apply flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-muted-foreground; }
   .nav-tab[data-status="active"] { @apply text-primary; }
 }

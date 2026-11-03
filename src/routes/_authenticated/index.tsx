@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BellRing, Users, FileCheck2, Car } from "lucide-react";
+import { BellRing, Users, FileCheck2, Car, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCollection, fmtDate } from "@/lib/store";
+import { useCollection, fmtDate, type BaseItem } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -16,10 +16,40 @@ export const Route = createFileRoute("/_authenticated/")({
   component: Index,
 });
 
+type Rappel = BaseItem & { type: string; to: "/offres" | "/commandes" };
+
+function RappelList({ items, now }: { items: Rappel[]; now: number }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((r) => {
+        const late = new Date(String(r.rappelDate)).getTime() <= now;
+        return (
+          <li key={r.id}>
+            <Link to={r.to} className="card-surface flex items-center gap-3 p-4 transition-transform hover:-translate-y-0.5">
+              <BellRing className={`size-5 shrink-0 ${late ? "text-primary" : "text-muted-foreground"}`} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">
+                  {[r.prenom, r.nom].filter(Boolean).join(" ") || String(r.modele ?? "")}{" "}
+                  <span className="tag ml-1">{r.type}</span>
+                </p>
+                <p className="truncate text-sm text-muted-foreground">{String(r.rappelRaison ?? "")}</p>
+              </div>
+              <span className={`shrink-0 text-right text-sm ${late ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+                {fmtDate(r.rappelDate)}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function Index() {
   const offres = useCollection("offres");
   const commandes = useCollection("commandes");
   const direction = useCollection("direction");
+  const [open, setOpen] = useState(true);
   const [perm, setPerm] = useState<string>("granted");
   useEffect(() => setPerm("Notification" in window ? Notification.permission : "unsupported"), []);
 
@@ -31,6 +61,9 @@ function Index() {
     .sort((a, b) => String(a.rappelDate).localeCompare(String(b.rappelDate)));
 
   const now = Date.now();
+  const limit = now + 7 * 24 * 3600 * 1000;
+  const bientot = rappels.filter((r) => new Date(String(r.rappelDate)).getTime() <= limit);
+  const plusTard = rappels.filter((r) => new Date(String(r.rappelDate)).getTime() > limit);
   const stats = [
     { label: "Clients offre", n: offres.length, icon: Users, to: "/_authenticated/offres" as const },
     { label: "Commandes", n: commandes.length, icon: FileCheck2, to: "/commandes" as const },
@@ -68,33 +101,32 @@ function Index() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="font-display text-xl font-semibold">Rappels</h2>
-        {rappels.length === 0 ? (
-          <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">Aucun rappel programmé.</p>
+        <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+          Bientôt <span className="tag tag-red">{bientot.length}</span>
+        </h2>
+        <p className="-mt-2 text-sm text-muted-foreground">Rappels des 7 prochains jours et en retard</p>
+        {bientot.length === 0 ? (
+          <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">Rien dans les 7 prochains jours.</p>
         ) : (
-          <ul className="space-y-2">
-            {rappels.map((r) => {
-              const late = new Date(String(r.rappelDate)).getTime() <= now;
-              return (
-                <li key={r.id}>
-                  <Link to={r.to} className="card-surface flex items-center gap-3 p-4">
-                    <BellRing className={`size-5 shrink-0 ${late ? "text-primary" : "text-muted-foreground"}`} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">
-                        {[r.prenom, r.nom].filter(Boolean).join(" ") || String(r.modele ?? "")}{" "}
-                        <span className="tag ml-1">{r.type}</span>
-                      </p>
-                      <p className="truncate text-sm text-muted-foreground">{String(r.rappelRaison ?? "")}</p>
-                    </div>
-                    <span className={`shrink-0 text-right text-sm ${late ? "font-semibold text-primary" : "text-muted-foreground"}`}>
-                      {fmtDate(r.rappelDate)}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <RappelList items={bientot} now={now} />
         )}
+      </section>
+
+      <section className="space-y-3">
+        <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between rounded-xl px-1 text-left">
+          <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
+            Rappels <span className="tag">{plusTard.length}</span>
+          </h2>
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            {open ? "Masquer" : "Afficher"} <ChevronDown className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
+          </span>
+        </button>
+        {open &&
+          (plusTard.length === 0 ? (
+            <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">Aucun rappel plus lointain.</p>
+          ) : (
+            <RappelList items={plusTard} now={now} />
+          ))}
       </section>
     </div>
   );
