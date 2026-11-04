@@ -11,16 +11,17 @@ export interface BaseItem {
   modele?: unknown; financement?: unknown; detailOffre?: unknown; repriseVehicule?: unknown;
   repriseMontant?: unknown; repriseDate?: unknown; note?: unknown; statuts?: unknown; etat?: unknown;
   immat?: unknown; chassis?: unknown; livraison?: unknown; prix?: unknown; finition?: unknown;
+  date?: unknown; heure?: unknown; jour?: unknown; texte?: unknown; mois?: unknown; lignes?: unknown; scelle?: unknown;
   options?: unknown; dateImmat?: unknown; affectation?: unknown; assurance?: unknown; carteGrise?: unknown;
   [key: string]: unknown;
 }
 
-export const COLLECTIONS = ["offres", "commandes", "direction"] as const;
+export const COLLECTIONS = ["offres", "commandes", "direction", "rdv", "notes", "objectifs"] as const;
 export type CollectionKey = (typeof COLLECTIONS)[number];
 
 type State = Record<CollectionKey, BaseItem[]>;
 const EMPTY: BaseItem[] = [];
-let state: State = { offres: [], commandes: [], direction: [] };
+let state: State = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [] };
 let loaded = false;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
@@ -33,7 +34,7 @@ function setCol(key: CollectionKey, items: BaseItem[]) {
 export async function loadAll() {
   const { data, error } = await supabase.from("items").select("*").order("created_at", { ascending: false });
   if (error) throw error;
-  const next: State = { offres: [], commandes: [], direction: [] };
+  const next: State = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [] };
   for (const r of data ?? []) {
     const k = r.collection as CollectionKey;
     if (!next[k]) continue;
@@ -45,7 +46,7 @@ export async function loadAll() {
 }
 
 export function clearAll() {
-  state = { offres: [], commandes: [], direction: [] };
+  state = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [] };
   loaded = false;
   emit();
 }

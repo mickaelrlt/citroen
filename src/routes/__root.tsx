@@ -9,7 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { LayoutDashboard, Users, FileCheck2, Car, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,8 @@ const NAV = [
   { to: "/offres", label: "Offres", icon: Users },
   { to: "/commandes", label: "Commandes", icon: FileCheck2 },
   { to: "/direction", label: "Direction", icon: Car },
+  { to: "/rdv", label: "RDV", icon: CalendarDays },
+  { to: "/objectif", label: "Objectif", icon: Target },
 ] as const;
 
 import appCss from "../styles.css?url";
@@ -175,7 +177,7 @@ function RootComponent() {
           <Outlet />
         </main>
         {email && (
-          <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+          <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
             {NAV.map((n) => (
               <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
                 <n.icon className="size-5" />
