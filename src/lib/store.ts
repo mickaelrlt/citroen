@@ -11,6 +11,7 @@ export interface BaseItem {
   modele?: unknown; financement?: unknown; detailOffre?: unknown; repriseVehicule?: unknown;
   repriseMontant?: unknown; repriseDate?: unknown; note?: unknown; statuts?: unknown; etat?: unknown;
   immat?: unknown; chassis?: unknown; livraison?: unknown; prix?: unknown; finition?: unknown;
+  date?: unknown; heure?: unknown; jour?: unknown; texte?: unknown; mois?: unknown; lignes?: unknown; scelle?: unknown;
   options?: unknown; dateImmat?: unknown; affectation?: unknown; assurance?: unknown; carteGrise?: unknown;
   [key: string]: unknown;
 }

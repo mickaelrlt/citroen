@@ -129,7 +129,7 @@ function RdvPage() {
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{rdv?.id ? "Modifier le RDV" : "Nouveau RDV"}</DialogTitle></DialogHeader>
           <form id="rdv-form" className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); upsert("rdv", rdv!).catch(fail); setRdv(null); }}>
-            {[["prenom", "Prénom", "text"], ["nom", "Nom", "text"], ["tel", "Téléphone", "tel"], ["email", "E-mail", "email"], ["date", "Date", "date"], ["heure", "Heure", "time"]].map(([n, l, t]) => (
+            {([["prenom", "Prénom", "text"], ["nom", "Nom", "text"], ["tel", "Téléphone", "tel"], ["email", "E-mail", "email"], ["date", "Date", "date"], ["heure", "Heure", "time"]] as const).map(([n, l, t]) => (
               <div key={n} className="space-y-1.5">
                 <Label htmlFor={`rdv-${n}`}>{l}</Label>
                 <Input id={`rdv-${n}`} type={t} required={n === "date" || n === "heure"} value={String(rdv?.[n] ?? "")} onChange={(e) => set(n, e.target.value)} />
