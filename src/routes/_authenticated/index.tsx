@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BellRing, Users, FileCheck2, Car, ChevronDown } from "lucide-react";
+import { BellRing, Users, FileCheck2, Car, ChevronDown, CalendarDays, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollection, fmtDate, type BaseItem } from "@/lib/store";
 
@@ -49,6 +49,9 @@ function Index() {
   const offres = useCollection("offres");
   const commandes = useCollection("commandes");
   const direction = useCollection("direction");
+  const rdvs = useCollection("rdv");
+  const objectifs = useCollection("objectifs");
+  const todayKey = new Date().toLocaleDateString("sv-SE");
   const [open, setOpen] = useState(true);
   const [perm, setPerm] = useState<string>("granted");
   useEffect(() => setPerm("Notification" in window ? Notification.permission : "unsupported"), []);
@@ -68,6 +71,8 @@ function Index() {
     { label: "Clients offre", n: offres.length, icon: Users, to: "/offres" as const },
     { label: "Commandes", n: commandes.length, icon: FileCheck2, to: "/commandes" as const },
     { label: "Véhicules direction", n: direction.length, icon: Car, to: "/direction" as const },
+    { label: "RDV à venir", n: rdvs.filter((r) => String(r.date ?? "") >= todayKey).length, icon: CalendarDays, to: "/rdv" as const },
+    { label: "Mois archivés", n: objectifs.filter((o) => o.scelle).length, icon: Target, to: "/objectif" as const },
   ];
 
   return (
@@ -86,7 +91,7 @@ function Index() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => (
           <Link key={s.to} to={s.to} className="card-surface group flex items-center gap-4 p-5 transition-transform hover:-translate-y-0.5">
             <span className="grid size-12 place-items-center rounded-xl bg-primary text-primary-foreground">
