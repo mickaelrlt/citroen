@@ -14,7 +14,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedCommandesRouteImport } from './routes/_authenticated/commandes'
 import { Route as AuthenticatedDirectionRouteImport } from './routes/_authenticated/direction'
+import { Route as AuthenticatedObjectifRouteImport } from './routes/_authenticated/objectif'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
+import { Route as AuthenticatedRdvRouteImport } from './routes/_authenticated/rdv'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -40,9 +42,19 @@ const AuthenticatedDirectionRoute = AuthenticatedDirectionRouteImport.update({
   path: '/direction',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedObjectifRoute = AuthenticatedObjectifRouteImport.update({
+  id: '/objectif',
+  path: '/objectif',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOffresRoute = AuthenticatedOffresRouteImport.update({
   id: '/offres',
   path: '/offres',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRdvRoute = AuthenticatedRdvRouteImport.update({
+  id: '/rdv',
+  path: '/rdv',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -51,13 +63,17 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/commandes': typeof AuthenticatedCommandesRoute
   '/direction': typeof AuthenticatedDirectionRoute
+  '/objectif': typeof AuthenticatedObjectifRoute
   '/offres': typeof AuthenticatedOffresRoute
+  '/rdv': typeof AuthenticatedRdvRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/commandes': typeof AuthenticatedCommandesRoute
   '/direction': typeof AuthenticatedDirectionRoute
+  '/objectif': typeof AuthenticatedObjectifRoute
   '/offres': typeof AuthenticatedOffresRoute
+  '/rdv': typeof AuthenticatedRdvRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -66,21 +82,39 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/commandes': typeof AuthenticatedCommandesRoute
   '/_authenticated/direction': typeof AuthenticatedDirectionRoute
+  '/_authenticated/objectif': typeof AuthenticatedObjectifRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
+  '/_authenticated/rdv': typeof AuthenticatedRdvRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/commandes' | '/direction' | '/offres'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/commandes'
+    | '/direction'
+    | '/objectif'
+    | '/offres'
+    | '/rdv'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/commandes' | '/direction' | '/offres' | '/'
+  to:
+    | '/auth'
+    | '/commandes'
+    | '/direction'
+    | '/objectif'
+    | '/offres'
+    | '/rdv'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/commandes'
     | '/_authenticated/direction'
+    | '/_authenticated/objectif'
     | '/_authenticated/offres'
+    | '/_authenticated/rdv'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -126,11 +160,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDirectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/objectif': {
+      id: '/_authenticated/objectif'
+      path: '/objectif'
+      fullPath: '/objectif'
+      preLoaderRoute: typeof AuthenticatedObjectifRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/offres': {
       id: '/_authenticated/offres'
       path: '/offres'
       fullPath: '/offres'
       preLoaderRoute: typeof AuthenticatedOffresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rdv': {
+      id: '/_authenticated/rdv'
+      path: '/rdv'
+      fullPath: '/rdv'
+      preLoaderRoute: typeof AuthenticatedRdvRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -139,14 +187,18 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandesRoute: typeof AuthenticatedCommandesRoute
   AuthenticatedDirectionRoute: typeof AuthenticatedDirectionRoute
+  AuthenticatedObjectifRoute: typeof AuthenticatedObjectifRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
+  AuthenticatedRdvRoute: typeof AuthenticatedRdvRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandesRoute: AuthenticatedCommandesRoute,
   AuthenticatedDirectionRoute: AuthenticatedDirectionRoute,
+  AuthenticatedObjectifRoute: AuthenticatedObjectifRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
+  AuthenticatedRdvRoute: AuthenticatedRdvRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
