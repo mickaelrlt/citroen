@@ -71,8 +71,8 @@ function Index() {
     { label: "Clients offre", n: offres.length, icon: Users, to: "/offres" as const },
     { label: "Commandes", n: commandes.length, icon: FileCheck2, to: "/commandes" as const },
     { label: "Véhicules direction", n: direction.length, icon: Car, to: "/direction" as const },
-    { label: "RDV à venir", n: rdvs.filter((r) => String(r.date ?? "") >= todayKey).length, icon: CalendarDays, to: "/rdv" as const },
-    { label: "Mois archivés", n: objectifs.filter((o) => o.scelle).length, icon: Target, to: "/objectif" as const },
+    { label: "RDV", n: rdvs.filter((r) => String(r.date ?? "") >= todayKey).length, icon: CalendarDays, to: "/rdv" as const },
+    { label: "Objectifs", n: objectifs.filter((o) => o.scelle).length, icon: Target, to: "/objectif" as const },
   ];
 
   return (
