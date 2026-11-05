@@ -37,7 +37,7 @@ function DossiersPage() {
     if (to < 0 || to >= dossiers.length) return;
     const l = [...dossiers];
     const [x] = l.splice(from, 1);
-    l.splice(to, 0, x);
+    l.splice(to, 0, x!);
     reorder(l);
   };
   const create = () => {
