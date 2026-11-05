@@ -4,6 +4,7 @@ import { Folder, FolderPlus, Pencil, Trash2, ArrowUp, ArrowDown, Upload, FileTex
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PdfViewer } from "@/components/PdfViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { useCollection, upsert, remove, type BaseItem } from "@/lib/store";
 
@@ -189,9 +190,7 @@ function DossiersPage() {
           </DialogHeader>
           {viewer && (viewer.image
             ? <div className="flex min-h-0 flex-1 items-center justify-center"><img src={viewer.url} alt={viewer.nom} className="max-h-full max-w-full rounded-md object-contain" /></div>
-            : <object data={viewer.url} type="application/pdf" className="w-full flex-1 rounded-md border">
-                <p className="p-6 text-center text-sm">Aperçu indisponible sur cet appareil. <a className="text-primary underline" href={viewer.url} target="_blank" rel="noreferrer">Ouvrir le PDF</a></p>
-              </object>)}
+            : <PdfViewer url={viewer.url} />)}
         </DialogContent>
       </Dialog>
     </div>
