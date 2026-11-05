@@ -18,7 +18,7 @@ export function PdfViewer({ url }: { url: string }) {
     if (!r || !list.length) return;
     const i = Math.max(1, Math.min(list.length, n));
     const { scale, positionX } = r.state;
-    r.setTransform(positionX, -(list[i - 1].offsetTop) * scale, scale, 200);
+    r.setTransform(positionX, -(list[i - 1]!.offsetTop) * scale, scale, 200);
     setPage(i);
   };
   const track = (scale: number, y: number) => {
@@ -98,7 +98,7 @@ export function PdfViewer({ url }: { url: string }) {
     <div ref={outer} className="relative min-h-0 flex-1 overflow-hidden rounded-md border bg-muted">
       {state === "loading" && <p className="absolute inset-x-0 top-0 z-10 p-6 text-center text-sm text-muted-foreground">Chargement du PDF…</p>}
       {state === "error" && <p className="absolute inset-x-0 top-0 z-10 p-6 text-center text-sm">Impossible d'afficher ce PDF. Utilisez « Télécharger ».</p>}
-      <TransformWrapper minScale={0.5} maxScale={8} initialScale={1} limitToBounds={false} ref={api} onTransformed={(_, st) => track(st.scale, st.positionY)} wheel={{ disabled: true }} doubleClick={{ step: 1 }} panning={{ velocityDisabled: true }}>
+      <TransformWrapper minScale={0.5} maxScale={8} initialScale={1} limitToBounds={false} ref={api} onTransform={(_r, st) => track(st.scale, st.positionY)} wheel={{ disabled: true }} doubleClick={{ step: 1 }} panning={{ velocityDisabled: true }}>
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             {total > 1 && (
