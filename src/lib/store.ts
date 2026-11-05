@@ -13,7 +13,7 @@ export interface BaseItem {
   immat?: unknown; chassis?: unknown; livraison?: unknown; prix?: unknown; finition?: unknown;
   date?: unknown; heure?: unknown; jour?: unknown; texte?: unknown; mois?: unknown; lignes?: unknown; scelle?: unknown;
   dossierId?: unknown; path?: unknown; ordre?: unknown; parentId?: unknown; mime?: unknown;
-  options?: unknown; dateImmat?: unknown; affectation?: unknown; assurance?: unknown; carteGrise?: unknown;
+  options?: unknown; reprise?: unknown; source?: unknown; repriseNote?: unknown; dateImmat?: unknown; affectation?: unknown; assurance?: unknown; carteGrise?: unknown;
   [key: string]: unknown;
 }
 
