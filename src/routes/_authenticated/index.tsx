@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BellRing, Users, FileCheck2, Car, ChevronDown, ChevronLeft, ChevronRight, CalendarDays, Target, Clock } from "lucide-react";
+import { BellRing, Users, FileCheck2, Car, ChevronDown, ChevronLeft, ChevronRight, CalendarDays, Target, Clock, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollection, fmtDate, type BaseItem } from "@/lib/store";
 import showroom from "@/assets/showroom-illustration-2.jpg";
@@ -94,6 +94,7 @@ function Index() {
   const direction = useCollection("direction");
   const rdvs = useCollection("rdv");
   const objectifs = useCollection("objectifs");
+  const dossiers = useCollection("dossiers");
   const todayKey = keyOf(new Date());
   const [open, setOpen] = useState(false);
   const [perm, setPerm] = useState<string>("granted");
@@ -119,6 +120,7 @@ function Index() {
     { label: "Commandes", n: commandes.length, icon: FileCheck2, to: "/commandes" as const },
     { label: "Direction", n: direction.length, icon: Car, to: "/direction" as const },
     { label: "RDV", n: rdvEntries.length, icon: CalendarDays, to: "/rdv" as const },
+    { label: "Dossiers", n: dossiers.length, icon: FolderOpen, to: "/dossiers" as const },
     { label: "Objectif", n: objectifs.filter((o) => o.scelle).length, icon: Target, to: "/objectif" as const },
   ];
 
@@ -145,18 +147,10 @@ function Index() {
           <MiniCalendar rdvs={rdvs} rappels={rappels} />
 
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {stats.map((s) => (
-              <Link key={s.to} to={s.to} className="card-surface flex flex-col items-start gap-2 p-4 transition-transform hover:-translate-y-0.5">
-                <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground"><s.icon className="size-4" /></span>
-                <span className="font-display text-2xl font-bold leading-none">{s.n}</span>
-                <span className="text-xs text-muted-foreground">{s.label}</span>
-              </Link>
-            ))}
-          </div>
         </div>
 
-        <aside className="card-surface h-fit space-y-5 p-5 lg:sticky lg:top-20">
+        <div className="h-fit space-y-6 lg:sticky lg:top-20">
+        <aside className="card-surface space-y-5 p-5">
           <h2 className="font-display text-xl font-semibold">Rappels & RDV</h2>
           <section className="space-y-2">
             <h3 className="flex items-center gap-2 font-semibold">Bientôt <span className="tag tag-red">{bientot.length}</span></h3>
@@ -171,6 +165,16 @@ function Index() {
             {open && (plusTard.length === 0 ? <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucun rappel plus lointain.</p> : <EntryList items={plusTard} now={now} />)}
           </section>
         </aside>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+            {stats.map((s) => (
+              <Link key={s.to} to={s.to} className="card-surface flex flex-col items-start gap-2 p-4 transition-transform hover:-translate-y-0.5">
+                <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground"><s.icon className="size-4" /></span>
+                <span className="font-display text-2xl font-bold leading-none">{s.n}</span>
+                <span className="text-xs text-muted-foreground">{s.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
