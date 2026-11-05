@@ -29,6 +29,7 @@ interface Props {
   cardTags: (i: BaseItem) => string[];
   tagColors?: Record<string, string>;
   newLabel: string;
+  groups?: { label: string; test: (i: BaseItem) => boolean }[];
 }
 
 export function CrudPage(p: Props) {
@@ -78,42 +79,60 @@ export function CrudPage(p: Props) {
           Aucun élément pour l'instant.
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((i) => (
-            <article key={i.id} className="card-surface flex flex-col gap-3 p-5">
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="font-display text-lg font-semibold leading-tight">{p.cardTitle(i)}</h2>
-                <div className="flex shrink-0 gap-1">
-                  <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => setEditing(i)}>
-                    <Pencil />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Supprimer"
-                    onClick={() => confirm("Supprimer cet élément ?") && remove(p.collection, i.id).catch(fail)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {p.cardTags(i).filter(Boolean).map((t) => (
-                  <span key={t} className={`tag ${p.tagColors?.[t] ?? ""}`}>{t}</span>
+        <div className="space-y-8">
+          {(p.groups ?? [{ label: "", test: () => true }]).map((g) => {
+            const list = filtered.filter(g.test);
+            return (
+              <section key={g.label} className="space-y-3">
+                {g.label && (
+                  <h2 className="font-display text-xl font-semibold">
+                    {g.label} <span className="text-sm font-normal text-muted-foreground">({list.length})</span>
+                  </h2>
+                )}
+                {list.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Aucune commande.</p>
+                ) : (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {list.map((i) => (
+                  <article key={i.id} className="card-surface flex flex-col gap-3 p-5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h2 className="font-display text-lg font-semibold leading-tight">{p.cardTitle(i)}</h2>
+                      <div className="flex shrink-0 gap-1">
+                        <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => setEditing(i)}>
+                          <Pencil />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Supprimer"
+                          onClick={() => confirm("Supprimer cet élément ?") && remove(p.collection, i.id).catch(fail)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.cardTags(i).filter(Boolean).map((t) => (
+                        <span key={t} className={`tag ${p.tagColors?.[t] ?? ""}`}>{t}</span>
+                      ))}
+                    </div>
+                    <div className="space-y-1 text-sm text-muted-foreground">{p.cardMeta(i)}</div>
+                    {i.rappelDate && (
+                      <div className="mt-auto flex items-start gap-2 rounded-lg bg-accent p-2.5 text-sm text-accent-foreground">
+                        <BellRing className="mt-0.5 size-4 shrink-0 text-primary" />
+                        <span>
+                          <strong>{fmtDate(i.rappelDate)}</strong>
+                          {i.rappelRaison ? ` — ${i.rappelRaison}` : ""}
+                        </span>
+                      </div>
+                    )}
+                  </article>
                 ))}
               </div>
-              <div className="space-y-1 text-sm text-muted-foreground">{p.cardMeta(i)}</div>
-              {i.rappelDate && (
-                <div className="mt-auto flex items-start gap-2 rounded-lg bg-accent p-2.5 text-sm text-accent-foreground">
-                  <BellRing className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>
-                    <strong>{fmtDate(i.rappelDate)}</strong>
-                    {i.rappelRaison ? ` — ${i.rappelRaison}` : ""}
-                  </span>
-                </div>
-              )}
-            </article>
-          ))}
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
 
