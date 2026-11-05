@@ -10,6 +10,43 @@ export function PdfViewer({ url }: { url: string }) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const pdfRef = useRef<any>(null);
+  const cssW = useRef(800);
+  const rendered = useRef<Map<number, number>>(new Map());
+  const timer = useRef<number | undefined>(undefined);
+
+  // render one page at a resolution matching the current zoom (capped for memory)
+  const renderPage = async (n: number, zoom: number) => {
+    const pdf = pdfRef.current;
+    const canvas = canvases()[n - 1];
+    if (!pdf || !canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const p = await pdf.getPage(n);
+    const base = p.getViewport({ scale: 1 });
+    let s = (cssW.current / base.width) * Math.max(zoom, 1) * dpr * 1.25;
+    const maxArea = 16_000_000;
+    if (base.width * s * base.height * s > maxArea) s = Math.sqrt(maxArea / (base.width * base.height));
+    if ((rendered.current.get(n) ?? 0) >= s * 0.98) return;
+    rendered.current.set(n, s);
+    const vp = p.getViewport({ scale: s });
+    const off = document.createElement("canvas");
+    off.width = vp.width; off.height = vp.height;
+    await p.render({ canvasContext: off.getContext("2d")!, viewport: vp, canvas: off }).promise;
+    canvas.width = off.width; canvas.height = off.height;
+    canvas.getContext("2d")!.drawImage(off, 0, 0);
+  };
+  const sharpen = () => {
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      const r = api.current; const o = outer.current;
+      if (!r || !o) return;
+      const { scale, positionY } = r.state;
+      const top = -positionY / scale, bottom = top + o.clientHeight / scale;
+      canvases().forEach((c, i) => {
+        if (c.offsetTop + c.offsetHeight >= top && c.offsetTop <= bottom) renderPage(i + 1, scale);
+      });
+    }, 250);
+  };
 
   const canvases = () => Array.from(ref.current?.querySelectorAll("canvas") ?? []) as HTMLCanvasElement[];
   const goTo = (n: number) => {
@@ -50,10 +87,12 @@ export function PdfViewer({ url }: { url: string }) {
         const worker = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
         pdfjs.GlobalWorkerOptions.workerSrc = worker;
         const pdf = await pdfjs.getDocument({ url }).promise;
+        pdfRef.current = pdf; rendered.current = new Map();
         if (!cancelled) { setTotal(pdf.numPages); setPage(1); }
         const width = Math.min((outer.current?.clientWidth || 800) - 24, 1000);
         // render at high resolution so tables stay sharp when zoomed
-        const quality = Math.min((window.devicePixelRatio || 1) * 3, 4);
+        cssW.current = width;
+        const quality = Math.min((window.devicePixelRatio || 1) * 2, 3);
         for (let n = 1; n <= pdf.numPages && !cancelled; n++) {
           const page = await pdf.getPage(n);
           const base = page.getViewport({ scale: 1 });
@@ -65,6 +104,7 @@ export function PdfViewer({ url }: { url: string }) {
           canvas.className = "mb-3 block rounded-md bg-white shadow";
           box.appendChild(canvas);
           await page.render({ canvasContext: canvas.getContext("2d")!, viewport: vp, canvas }).promise;
+          rendered.current.set(n, (width / base.width) * quality);
           if (n === 1 && !cancelled) setState("ok");
         }
       } catch {
@@ -98,7 +138,7 @@ export function PdfViewer({ url }: { url: string }) {
     <div ref={outer} className="relative min-h-0 flex-1 overflow-hidden rounded-md border bg-muted">
       {state === "loading" && <p className="absolute inset-x-0 top-0 z-10 p-6 text-center text-sm text-muted-foreground">Chargement du PDF…</p>}
       {state === "error" && <p className="absolute inset-x-0 top-0 z-10 p-6 text-center text-sm">Impossible d'afficher ce PDF. Utilisez « Télécharger ».</p>}
-      <TransformWrapper minScale={0.5} maxScale={8} initialScale={1} limitToBounds={false} ref={api} onTransform={(_r, st) => track(st.scale, st.positionY)} wheel={{ disabled: true }} doubleClick={{ step: 1 }} panning={{ velocityDisabled: true }}>
+      <TransformWrapper minScale={0.5} maxScale={8} initialScale={1} limitToBounds={false} ref={api} onTransform={(_r, st) => { track(st.scale, st.positionY); sharpen(); }} wheel={{ disabled: true }} doubleClick={{ step: 1 }} panning={{ velocityDisabled: true }}>
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             {total > 1 && (
