@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedCommandesRouteImport } from './routes/_authenticated/commandes'
 import { Route as AuthenticatedDirectionRouteImport } from './routes/_authenticated/direction'
+import { Route as AuthenticatedDossiersRouteImport } from './routes/_authenticated/dossiers'
 import { Route as AuthenticatedObjectifRouteImport } from './routes/_authenticated/objectif'
 import { Route as AuthenticatedOffresRouteImport } from './routes/_authenticated/offres'
 import { Route as AuthenticatedRdvRouteImport } from './routes/_authenticated/rdv'
@@ -42,6 +43,11 @@ const AuthenticatedDirectionRoute = AuthenticatedDirectionRouteImport.update({
   path: '/direction',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDossiersRoute = AuthenticatedDossiersRouteImport.update({
+  id: '/dossiers',
+  path: '/dossiers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedObjectifRoute = AuthenticatedObjectifRouteImport.update({
   id: '/objectif',
   path: '/objectif',
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/commandes': typeof AuthenticatedCommandesRoute
   '/direction': typeof AuthenticatedDirectionRoute
+  '/dossiers': typeof AuthenticatedDossiersRoute
   '/objectif': typeof AuthenticatedObjectifRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/rdv': typeof AuthenticatedRdvRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/commandes': typeof AuthenticatedCommandesRoute
   '/direction': typeof AuthenticatedDirectionRoute
+  '/dossiers': typeof AuthenticatedDossiersRoute
   '/objectif': typeof AuthenticatedObjectifRoute
   '/offres': typeof AuthenticatedOffresRoute
   '/rdv': typeof AuthenticatedRdvRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/commandes': typeof AuthenticatedCommandesRoute
   '/_authenticated/direction': typeof AuthenticatedDirectionRoute
+  '/_authenticated/dossiers': typeof AuthenticatedDossiersRoute
   '/_authenticated/objectif': typeof AuthenticatedObjectifRoute
   '/_authenticated/offres': typeof AuthenticatedOffresRoute
   '/_authenticated/rdv': typeof AuthenticatedRdvRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/commandes'
     | '/direction'
+    | '/dossiers'
     | '/objectif'
     | '/offres'
     | '/rdv'
@@ -102,6 +112,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/commandes'
     | '/direction'
+    | '/dossiers'
     | '/objectif'
     | '/offres'
     | '/rdv'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/commandes'
     | '/_authenticated/direction'
+    | '/_authenticated/dossiers'
     | '/_authenticated/objectif'
     | '/_authenticated/offres'
     | '/_authenticated/rdv'
@@ -160,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDirectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dossiers': {
+      id: '/_authenticated/dossiers'
+      path: '/dossiers'
+      fullPath: '/dossiers'
+      preLoaderRoute: typeof AuthenticatedDossiersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/objectif': {
       id: '/_authenticated/objectif'
       path: '/objectif'
@@ -187,6 +206,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandesRoute: typeof AuthenticatedCommandesRoute
   AuthenticatedDirectionRoute: typeof AuthenticatedDirectionRoute
+  AuthenticatedDossiersRoute: typeof AuthenticatedDossiersRoute
   AuthenticatedObjectifRoute: typeof AuthenticatedObjectifRoute
   AuthenticatedOffresRoute: typeof AuthenticatedOffresRoute
   AuthenticatedRdvRoute: typeof AuthenticatedRdvRoute
@@ -196,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandesRoute: AuthenticatedCommandesRoute,
   AuthenticatedDirectionRoute: AuthenticatedDirectionRoute,
+  AuthenticatedDossiersRoute: AuthenticatedDossiersRoute,
   AuthenticatedObjectifRoute: AuthenticatedObjectifRoute,
   AuthenticatedOffresRoute: AuthenticatedOffresRoute,
   AuthenticatedRdvRoute: AuthenticatedRdvRoute,

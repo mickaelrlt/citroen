@@ -9,7 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target } from "lucide-react";
+import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target, FolderOpen } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ const NAV = [
   { to: "/direction", label: "Direction", icon: Car },
   { to: "/rdv", label: "RDV", icon: CalendarDays },
   { to: "/objectif", label: "Objectif", icon: Target },
+  { to: "/dossiers", label: "Dossiers", icon: FolderOpen },
 ] as const;
 
 import appCss from "../styles.css?url";

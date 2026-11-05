@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/rdv")({
 const pad = (n: number) => String(n).padStart(2, "0");
 const key = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const HEURES = Array.from({ length: 14 }, (_, i) => i + 7);
 const fail = () => toast.error("Enregistrement impossible, vérifiez votre connexion");
 
 function RdvPage() {
@@ -87,7 +88,7 @@ function RdvPage() {
                 </span>
                 {list.slice(0, 3).map((r) => (
                   <span key={r.id} className="truncate rounded bg-primary px-1 text-primary-foreground">
-                    <span className="hidden sm:inline">{String(r.heure ?? "")} </span>{String(r.nom ?? r.prenom ?? "RDV")}
+                    <span className="hidden sm:inline">{String(r.heure ?? "")} </span>{String(r.note || [r.prenom, r.nom].filter(Boolean).join(" ") || "—")}
                   </span>
                 ))}
                 {list.length > 3 && <span className="text-muted-foreground">+{list.length - 3}</span>}
@@ -103,9 +104,18 @@ function RdvPage() {
             <DialogTitle className="capitalize">{day && new Date(day + "T12:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            {day && byDay(day).length === 0 && <p className="text-sm text-muted-foreground">Aucun RDV ce jour.</p>}
-            {day && byDay(day).map((r) => (
-              <div key={r.id} className="flex items-start justify-between gap-2 rounded-lg border p-3 text-sm">
+            {day && HEURES.map((h) => {
+              const list = byDay(day).filter((r) => {
+                const hr = Number(String(r.heure ?? "").slice(0, 2));
+                return h === HEURES[0] ? hr <= h : h === HEURES[HEURES.length - 1] ? hr >= h : hr === h;
+              });
+              return (
+              <div key={h} className="flex gap-2 border-t pt-1">
+                <button type="button" className="w-12 shrink-0 text-left text-xs font-semibold text-muted-foreground hover:text-primary"
+                  onClick={() => { setRdv({ date: day, heure: `${pad(h)}:00` }); setDay(null); }}>{pad(h)}:00</button>
+                <div className="min-h-8 flex-1 space-y-1">
+            {list.map((r) => (
+              <div key={r.id} className="flex items-start justify-between gap-2 rounded-lg border-l-4 border-primary bg-accent p-2 text-sm">
                 <button type="button" className="text-left" onClick={() => { setRdv(r); setDay(null); }}>
                   <strong>{String(r.heure ?? "")} — {String(r.prenom ?? "")} {String(r.nom ?? "")}</strong>
                   {r.tel ? <p>{String(r.tel)}</p> : null}
@@ -115,6 +125,10 @@ function RdvPage() {
                 <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => confirm("Supprimer ce RDV ?") && remove("rdv", r.id).catch(fail)}><Trash2 /></Button>
               </div>
             ))}
+                </div>
+              </div>
+              );
+            })}
             <Button variant="outline" className="w-full" onClick={() => { setRdv({ date: day!, heure: "10:00" }); setDay(null); }}><Plus /> RDV ce jour</Button>
           </div>
           <div className="space-y-1.5">
