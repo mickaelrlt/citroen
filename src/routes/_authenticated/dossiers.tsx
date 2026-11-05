@@ -75,7 +75,7 @@ function DossiersPage() {
   };
   const openPdf = async (f: BaseItem) => {
     const { data, error } = await supabase.storage.from("pdfs").createSignedUrl(String(f.path), 3600);
-    if (error || !data) return fail();
+    if (error || !data) { fail(); return; }
     setViewer({ nom: String(f.nom), url: data.signedUrl });
   };
 
