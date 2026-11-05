@@ -9,7 +9,7 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target, FolderOpen } from "lucide-react";
+import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target, FolderOpen, Plus, Minus } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
@@ -178,17 +178,44 @@ function RootComponent() {
           <Outlet />
         </main>
         {email && (
-          <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
-            {NAV.map((n) => (
-              <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
-                <n.icon className="size-5" />
-                {n.label}
-              </Link>
-            ))}
-          </nav>
+          <MobileNav />
         )}
       </div>
       <Toaster position="top-center" />
     </QueryClientProvider>
+  );
+}
+
+function MobileNav() {
+  const [open, setOpen] = useState(false);
+  const main = NAV.slice(0, 5);
+  const more = NAV.slice(5);
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 md:hidden">
+      {open && (
+        <div className="mx-2 mb-2 flex justify-end">
+          <div className="flex gap-1 rounded-2xl border bg-card/95 p-1 shadow-lg backdrop-blur-xl animate-in slide-in-from-bottom-2 fade-in">
+            {more.map((n) => (
+              <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab px-4" onClick={() => setOpen(false)}>
+                <n.icon className="size-5" />
+                {n.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-6 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
+        {main.map((n) => (
+          <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="nav-tab">
+            <n.icon className="size-5" />
+            {n.label}
+          </Link>
+        ))}
+        <button type="button" className="nav-tab" aria-expanded={open} aria-label={open ? "Fermer le menu" : "Plus d'onglets"} onClick={() => setOpen((o) => !o)}>
+          {open ? <Minus className="size-5" /> : <Plus className="size-5" />}
+          {open ? "Fermer" : "Plus"}
+        </button>
+      </div>
+    </nav>
   );
 }
