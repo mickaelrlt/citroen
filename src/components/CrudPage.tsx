@@ -11,7 +11,8 @@ import { useCollection, upsert, remove, fmtDate, type BaseItem, type CollectionK
 export interface Field {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email";
+  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email" | "choice" | "check";
+  showIf?: (e: Partial<BaseItem>) => boolean;
   options?: string[];
   section?: string;
   full?: boolean;
@@ -134,13 +135,26 @@ export function CrudPage(p: Props) {
               <fieldset key={s} className="space-y-3">
                 {s && <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">{s}</legend>}
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {allFields.filter((f) => (f.section ?? "") === s).map((f) => {
+                  {allFields.filter((f) => (f.section ?? "") === s && (!f.showIf || f.showIf(editing ?? {}))).map((f) => {
                     const v = String(editing?.[f.name] ?? "");
                     const arr = Array.isArray(editing?.[f.name]) ? (editing![f.name] as string[]) : [];
                     return (
                       <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "textarea" || f.type === "multi" ? "sm:col-span-2" : ""}`}>
                         <Label htmlFor={f.name}>{f.label}</Label>
-                        {f.type === "textarea" ? (
+                        {f.type === "check" ? (
+                          <label className="flex cursor-pointer items-center gap-2 text-sm">
+                            <input id={f.name} type="checkbox" className="size-4 accent-primary" checked={!!editing?.[f.name]} onChange={(e) => set(f.name, e.target.checked)} />
+                            Oui
+                          </label>
+                        ) : f.type === "choice" ? (
+                          <div className="flex flex-wrap gap-2">
+                            {f.options!.map((o) => (
+                              <Button key={o} type="button" size="sm" variant={v === o ? "default" : "outline"} aria-pressed={v === o} onClick={() => set(f.name, v === o ? "" : o)}>
+                                {o}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : f.type === "textarea" ? (
                           <Textarea id={f.name} value={v} onChange={(e) => set(f.name, e.target.value)} />
                         ) : f.type === "multi" ? (
                           <div className="flex flex-wrap gap-2">

@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CrudPage } from "@/components/CrudPage";
-import { euro, fmtDate } from "@/lib/store";
+import { euro, fmtDate, type BaseItem } from "@/lib/store";
+
+const hasVin = (e: Partial<BaseItem>) => e.etat === "OCCASION" || (e.etat === "NEUF" && e.source === "STOCK");
+const hasCar = (e: Partial<BaseItem>) => e.etat === "OCCASION" || (e.etat === "NEUF" && !!e.source);
 
 export const Route = createFileRoute("/_authenticated/offres")({
   head: () => ({
@@ -25,21 +28,28 @@ export const Route = createFileRoute("/_authenticated/offres")({
         { name: "email", label: "E-mail", type: "email", section: "Client" },
         { name: "adresse", label: "Adresse", section: "Client", full: true },
         { name: "note", label: "Note", type: "textarea", section: "Client" },
-        { name: "modele", label: "Véhicule proposé", section: "Offre" },
-        { name: "financement", label: "Financement", type: "select", options: ["LOA", "LLD", "COMPTANT"], section: "Offre" },
+        { name: "etat", label: "Véhicule", type: "choice", options: ["NEUF", "OCCASION"], section: "Offre", full: true },
+        { name: "source", label: "Neuf", type: "choice", options: ["STOCK", "COMMANDE"], section: "Offre", full: true, showIf: (e) => e.etat === "NEUF" },
+        { name: "immat", label: "Immatriculation", section: "Offre", showIf: hasVin },
+        { name: "chassis", label: "VIN", section: "Offre", showIf: hasVin },
+        { name: "modele", label: "Modèle", section: "Offre", showIf: hasCar },
+        { name: "finition", label: "Finition", section: "Offre", showIf: hasCar },
+        { name: "financement", label: "Financement", type: "select", options: ["LOA", "LLD", "COMPTANT"], section: "Offre", showIf: hasCar },
         { name: "detailOffre", label: "Détail de l'offre (loyer, durée, apport…)", type: "textarea", section: "Offre" },
-        { name: "repriseVehicule", label: "Véhicule repris", section: "Reprise" },
-        { name: "repriseMontant", label: "Montant de reprise (€)", type: "number", section: "Reprise" },
-        { name: "repriseDate", label: "Date de reprise", type: "date", section: "Reprise" },
+        { name: "reprise", label: "Reprise", type: "check", section: "Reprise", full: true },
+        { name: "repriseVehicule", label: "Véhicule repris", section: "Reprise", showIf: (e) => !!e.reprise },
+        { name: "repriseMontant", label: "Montant de reprise (€)", type: "number", section: "Reprise", showIf: (e) => !!e.reprise },
+        { name: "repriseDate", label: "Date de livraison", type: "date", section: "Reprise", showIf: (e) => !!e.reprise },
+        { name: "repriseNote", label: "Note", type: "textarea", section: "Reprise", showIf: (e) => !!e.reprise },
       ]}
       cardTitle={(i) => [i.prenom, i.nom].filter(Boolean).join(" ") || "Client sans nom"}
-      cardTags={(i) => [String(i.financement ?? ""), String(i.modele ?? "")]}
+      cardTags={(i) => [String(i.etat ?? ""), String(i.source ?? ""), String(i.financement ?? ""), String(i.modele ?? "")]}
       cardMeta={(i) => (
         <>
           {i.tel ? <p>📞 <a className="underline" href={`tel:${i.tel}`}>{String(i.tel)}</a></p> : null}
           {i.email ? <p>✉️ {String(i.email)}</p> : null}
           {i.repriseVehicule || i.repriseMontant ? (
-            <p>Reprise : {String(i.repriseVehicule ?? "")} {euro(i.repriseMontant)}{i.repriseDate ? ` · le ${fmtDate(i.repriseDate)}` : ""}</p>
+            <p>Reprise : {String(i.repriseVehicule ?? "")} {euro(i.repriseMontant)}{i.repriseDate ? ` · livraison le ${fmtDate(i.repriseDate)}` : ""}</p>
           ) : null}
           {i.note ? <p className="italic text-foreground">« {String(i.note)} »</p> : null}
         </>
