@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BellRing, Users, FileCheck2, Car, ChevronDown, ChevronLeft, ChevronRight, CalendarDays, Target, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollection, fmtDate, type BaseItem } from "@/lib/store";
-import showroom from "@/assets/showroom-illustration.jpg";
+import showroom from "@/assets/showroom-illustration-2.jpg";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -124,10 +124,14 @@ function Index() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-widest text-primary">Bonjour 👋</p>
-        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Votre journée</h1>
-      </header>
+      <section className="relative overflow-hidden rounded-2xl" style={{ boxShadow: "var(--shadow-card)" }}>
+        <img src={showroom} alt="Citroën devant la concession" width={1600} height={720} className="h-56 w-full object-cover sm:h-64" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-5 text-background">
+          <p className="flex items-center gap-2 text-sm font-medium opacity-90"><Clock className="size-4" />{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
+          <p className="font-display text-2xl font-bold">{todayRdv === 0 ? "Aucun RDV aujourd'hui" : `${todayRdv} RDV aujourd'hui`}</p>
+        </div>
+      </section>
 
       {perm === "default" && (
         <div className="card-surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -140,14 +144,6 @@ function Index() {
         <div className="min-w-0 space-y-6">
           <MiniCalendar rdvs={rdvs} rappels={rappels} />
 
-          <section className="relative overflow-hidden rounded-2xl" style={{ boxShadow: "var(--shadow-card)" }}>
-            <img src={showroom} alt="Citroën devant la concession" width={1600} height={720} loading="lazy" className="h-56 w-full object-cover sm:h-64" />
-            <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 text-background">
-              <p className="flex items-center gap-2 text-sm font-medium opacity-90"><Clock className="size-4" />{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</p>
-              <p className="font-display text-2xl font-bold">{todayRdv === 0 ? "Aucun RDV aujourd'hui" : `${todayRdv} RDV aujourd'hui`}</p>
-            </div>
-          </section>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {stats.map((s) => (
