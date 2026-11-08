@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/commandes")({
       { name: "description", content: "Suivi des commandes : statut, financement, livraison." },
       { property: "og:title", content: "Clients commande — Carnet Vendeur" },
       { property: "og:description", content: "Suivi des commandes : statut, financement, livraison." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (
@@ -44,6 +46,8 @@ export const Route = createFileRoute("/_authenticated/commandes")({
         { name: "nom", label: "Nom", section: "Client" },
         { name: "tel", label: "Téléphone", type: "tel", section: "Client" },
         { name: "statuts", label: "Statuts (plusieurs possibles)", type: "multi", options: STATUTS, section: "Client" },
+        { name: "dateCommande", label: "Date de la commande", type: "date", section: "Commande" },
+        { name: "documentPdf", label: "Bon de commande (PDF)", type: "pdf", section: "Commande", full: true },
         { name: "etat", label: "Neuf / Occasion", type: "select", options: ["Neuf", "Occasion"], section: "Véhicule" },
         { name: "modele", label: "Modèle", section: "Véhicule" },
         { name: "immat", label: "Immatriculation", section: "Véhicule" },
@@ -57,6 +61,7 @@ export const Route = createFileRoute("/_authenticated/commandes")({
       cardTags={(i) => [...(Array.isArray(i.statuts) ? (i.statuts as string[]) : []), String(i.etat ?? ""), String(i.financement ?? "")]}
       cardMeta={(i) => (
         <>
+          {i['dateCommande'] ? <p>Commande du {fmtDate(i['dateCommande'])}</p> : null}
           <p className="font-medium text-foreground">{String(i.modele ?? "")} {i.immat ? `· ${i.immat}` : ""}</p>
           {i.chassis ? <p>VIN : {String(i.chassis)}</p> : null}
           {i.livraison ? <p>🚚 Livraison : {fmtDate(i.livraison)}</p> : null}

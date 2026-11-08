@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/offres")({
       { name: "description", content: "Suivi des clients en offre : financement, reprise et relances." },
       { property: "og:title", content: "Clients offre — Carnet Vendeur" },
       { property: "og:description", content: "Suivi des clients en offre : financement, reprise et relances." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (
@@ -28,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/offres")({
         { name: "email", label: "E-mail", type: "email", section: "Client" },
         { name: "adresse", label: "Adresse", section: "Client", full: true },
         { name: "note", label: "Note", type: "textarea", section: "Client" },
+        { name: "dateOffre", label: "Date de l’offre", type: "date", section: "Offre" },
+        { name: "documentPdf", label: "Offre (PDF)", type: "pdf", section: "Offre", full: true },
         { name: "etat", label: "Véhicule", type: "choice", options: ["NEUF", "OCCASION"], section: "Offre", full: true },
         { name: "source", label: "Neuf", type: "choice", options: ["STOCK", "COMMANDE"], section: "Offre", full: true, showIf: (e) => e.etat === "NEUF" },
         { name: "immat", label: "Immatriculation", section: "Offre", showIf: hasVin },
@@ -46,6 +50,7 @@ export const Route = createFileRoute("/_authenticated/offres")({
       cardTags={(i) => [String(i.etat ?? ""), String(i.source ?? ""), String(i.financement ?? ""), String(i.modele ?? "")]}
       cardMeta={(i) => (
         <>
+          {i['dateOffre'] ? <p>Offre du {fmtDate(i['dateOffre'])}</p> : null}
           {i.tel ? <p>📞 <a className="underline" href={`tel:${i.tel}`}>{String(i.tel)}</a></p> : null}
           {i.email ? <p>✉️ {String(i.email)}</p> : null}
           {i.repriseVehicule || i.repriseMontant ? (

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Plus, Search, Pencil, Trash2, BellRing } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, BellRing, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useCollection, upsert, remove, fmtDate, type BaseItem, type CollectionKey } from "@/lib/store";
+import { ClientDocumentButton } from "@/components/ClientDocumentButton";
+import { asClientDocument, uploadClientDocument, deleteClientDocument } from "@/lib/client-document";
 
 export interface Field {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email" | "choice" | "check";
+  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email" | "choice" | "check" | "pdf";
   showIf?: (e: Partial<BaseItem>) => boolean;
   options?: string[];
   section?: string;
@@ -36,6 +38,13 @@ export function CrudPage(p: Props) {
   const items = useCollection(p.collection);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Partial<BaseItem> | null>(null);
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const pdfField = p.fields.find((f) => f.type === "pdf");
+  const edit = (item: Partial<BaseItem> | null) => {
+    setPendingPdf(null);
+    setEditing(item);
+  };
 
   const filtered = useMemo(() => {
     const s = q.toLowerCase().trim();
@@ -56,6 +65,25 @@ export function CrudPage(p: Props) {
   const set = (k: string, v: unknown) =>
     setEditing((e) => ({ ...e, [k]: v, ...(k === "rappelDate" ? { rappelNotified: false } : {}) }));
   const fail = () => toast.error("Enregistrement impossible, vérifiez votre connexion");
+  const save = async () => {
+    if (!editing || saving) return;
+    setSaving(true);
+    const old = pdfField ? asClientDocument(items.find((i) => i.id === editing.id)?.[pdfField.name]) : null;
+    let uploaded: Awaited<ReturnType<typeof uploadClientDocument>> | null = null;
+    try {
+      if (pendingPdf && pdfField) uploaded = await uploadClientDocument(pendingPdf);
+      const next = { ...editing, ...(uploaded && pdfField ? { [pdfField.name]: uploaded } : {}) };
+      await upsert(p.collection, next);
+      const current = pdfField ? asClientDocument(next[pdfField.name]) : null;
+      if (old && old.path !== current?.path) deleteClientDocument(old).catch(() => {});
+      edit(null);
+    } catch (error) {
+      if (uploaded) deleteClientDocument(uploaded).catch(() => {});
+      toast.error(error instanceof Error ? error.message : "Enregistrement impossible, vérifiez votre connexion");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -64,7 +92,7 @@ export function CrudPage(p: Props) {
           <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{p.title}</h1>
           <p className="text-muted-foreground">{p.subtitle}</p>
         </div>
-        <Button onClick={() => setEditing({})} size="lg">
+        <Button onClick={() => edit({})} size="lg">
           <Plus /> {p.newLabel}
         </Button>
       </header>
@@ -98,7 +126,7 @@ export function CrudPage(p: Props) {
                     <div className="flex items-start justify-between gap-2">
                       <h2 className="font-display text-lg font-semibold leading-tight">{p.cardTitle(i)}</h2>
                       <div className="flex shrink-0 gap-1">
-                        <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => setEditing(i)}>
+                        <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => edit(i)}>
                           <Pencil />
                         </Button>
                         <Button
@@ -117,6 +145,7 @@ export function CrudPage(p: Props) {
                       ))}
                     </div>
                     <div className="space-y-1 text-sm text-muted-foreground">{p.cardMeta(i)}</div>
+                    {pdfField && asClientDocument(i[pdfField.name]) && <ClientDocumentButton document={asClientDocument(i[pdfField.name]) as NonNullable<ReturnType<typeof asClientDocument>>} />}
                     {i.rappelDate && (
                       <div className="mt-auto flex items-start gap-2 rounded-lg bg-accent p-2.5 text-sm text-accent-foreground">
                         <BellRing className="mt-0.5 size-4 shrink-0 text-primary" />
@@ -136,7 +165,7 @@ export function CrudPage(p: Props) {
         </div>
       )}
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o && !saving) edit(null); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing?.id ? "Modifier" : p.newLabel}</DialogTitle>
@@ -146,8 +175,7 @@ export function CrudPage(p: Props) {
             className="space-y-6"
             onSubmit={(e) => {
               e.preventDefault();
-              upsert(p.collection, editing!).catch(fail);
-              setEditing(null);
+              void save();
             }}
           >
             {sections.map((s) => (
@@ -156,18 +184,26 @@ export function CrudPage(p: Props) {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {allFields.filter((f) => (f.section ?? "") === s && (!f.showIf || f.showIf(editing ?? {}))).map((f) => {
                     const v = String(editing?.[f.name] ?? "");
-                    const arr = Array.isArray(editing?.[f.name]) ? (editing![f.name] as string[]) : [];
+                    const raw = editing?.[f.name];
+                    const arr = Array.isArray(raw) ? raw as string[] : [];
+                    const document = asClientDocument(raw);
                     return (
                       <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "textarea" || f.type === "multi" ? "sm:col-span-2" : ""}`}>
                         <Label htmlFor={f.name}>{f.label}</Label>
-                        {f.type === "check" ? (
+                        {f.type === "pdf" ? (
+                          <div className="space-y-2">
+                            {pendingPdf ? <p className="flex min-w-0 items-center gap-2 text-sm"><FileText className="size-4 shrink-0" /><span className="truncate">{pendingPdf.name}</span></p> : document ? <ClientDocumentButton document={document} /> : null}
+                            <Input id={f.name} type="file" accept="application/pdf,.pdf" disabled={saving} onChange={(e) => setPendingPdf(e.target.files?.[0] ?? null)} />
+                            {(pendingPdf || document) && <Button type="button" size="sm" variant="ghost" disabled={saving} onClick={() => { setPendingPdf(null); set(f.name, null); const input = window.document.getElementById(f.name); if (input instanceof HTMLInputElement) input.value = ""; }}><Trash2 /> Retirer le PDF</Button>}
+                          </div>
+                        ) : f.type === "check" ? (
                           <label className="flex cursor-pointer items-center gap-2 text-sm">
                             <input id={f.name} type="checkbox" className="size-4 accent-primary" checked={!!editing?.[f.name]} onChange={(e) => set(f.name, e.target.checked)} />
                             Oui
                           </label>
                         ) : f.type === "choice" ? (
                           <div className="flex flex-wrap gap-2">
-                            {f.options!.map((o) => (
+                            {(f.options ?? []).map((o) => (
                               <Button key={o} type="button" size="sm" variant={v === o ? "default" : "outline"} aria-pressed={v === o} onClick={() => set(f.name, v === o ? "" : o)}>
                                 {o}
                               </Button>
@@ -177,7 +213,7 @@ export function CrudPage(p: Props) {
                           <Textarea id={f.name} value={v} onChange={(e) => set(f.name, e.target.value)} />
                         ) : f.type === "multi" ? (
                           <div className="flex flex-wrap gap-2">
-                            {f.options!.map((o) => {
+                            {(f.options ?? []).map((o) => {
                               const on = arr.includes(o);
                               return (
                                 <button
@@ -196,7 +232,7 @@ export function CrudPage(p: Props) {
                         ) : f.type === "select" ? (
                           <select id={f.name} className="select-native" value={v} onChange={(e) => set(f.name, e.target.value)}>
                             <option value="">—</option>
-                            {f.options!.map((o) => <option key={o}>{o}</option>)}
+                            {(f.options ?? []).map((o) => <option key={o}>{o}</option>)}
                           </select>
                         ) : (
                           <Input id={f.name} type={f.type ?? "text"} value={v} onChange={(e) => set(f.name, e.target.value)} />
@@ -209,8 +245,8 @@ export function CrudPage(p: Props) {
             ))}
           </form>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>Annuler</Button>
-            <Button type="submit" form="crud-form">Enregistrer</Button>
+            <Button variant="outline" disabled={saving} onClick={() => edit(null)}>Annuler</Button>
+            <Button type="submit" form="crud-form" disabled={saving}>{saving ? "Enregistrement…" : "Enregistrer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

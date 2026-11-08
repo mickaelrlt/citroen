@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - App data lives in one `items` table (collection + jsonb data, owner-scoped RLS) via src/lib/store.ts; pages sit under `_authenticated` — keeps per-user data synced across devices.
+- Offer/order PDFs use the existing private `pdfs` bucket with user-prefixed paths and document metadata in the item's JSON; reuse PdfViewer so document zoom and navigation stay consistent.

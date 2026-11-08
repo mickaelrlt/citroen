@@ -1,0 +1,2 @@
+- [x] Ajouter une date et un PDF aux offres et commandes (tests de sauvegarde réussis).
+- [ ] Vérifier l’enregistrement et la consultation sur ordinateur et téléphone : en attente de connexion de l’utilisateur dans l’aperçu.
