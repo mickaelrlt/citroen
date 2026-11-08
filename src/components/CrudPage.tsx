@@ -32,6 +32,7 @@ interface Props {
   tagColors?: Record<string, string>;
   newLabel: string;
   groups?: { label: string; test: (i: BaseItem) => boolean }[];
+  subgroupItems?: (items: BaseItem[]) => { label: string; items: BaseItem[] }[];
 }
 
 export function CrudPage(p: Props) {
@@ -120,8 +121,12 @@ export function CrudPage(p: Props) {
                 {list.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Aucune commande.</p>
                 ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {list.map((i) => (
+              <div className="space-y-6">
+                {(p.subgroupItems?.(list) ?? [{ label: "", items: list }]).map((subgroup) => (
+                  <div key={subgroup.label} className="space-y-3">
+                    {subgroup.label && <h3 className="border-b pb-2 text-base font-semibold capitalize">{subgroup.label} <span className="text-sm font-normal text-muted-foreground">({subgroup.items.length})</span></h3>}
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {subgroup.items.map((i) => (
                   <article key={i.id} className="card-surface flex flex-col gap-3 p-5">
                     <div className="flex items-start justify-between gap-2">
                       <h2 className="font-display text-lg font-semibold leading-tight">{p.cardTitle(i)}</h2>
@@ -156,6 +161,9 @@ export function CrudPage(p: Props) {
                       </div>
                     )}
                   </article>
+                ))}
+                    </div>
+                  </div>
                 ))}
               </div>
                 )}

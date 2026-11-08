@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CrudPage } from "@/components/CrudPage";
 import { fmtDate, type BaseItem } from "@/lib/store";
+import { groupOrdersByMonth } from "@/lib/order-months";
 
 const isLivre = (i: BaseItem) => Array.isArray(i.statuts) && i.statuts.includes("Livré");
 
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/commandes")({
         { label: "Livré", test: isLivre },
       ]}
       collection="commandes"
+      subgroupItems={groupOrdersByMonth}
       title="Clients commande"
       subtitle="Commandes en cours jusqu'à la livraison"
       newLabel="Nouvelle commande"
