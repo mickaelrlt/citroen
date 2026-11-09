@@ -9,6 +9,8 @@ export const Route = createFileRoute("/_authenticated/direction")({
       { name: "description", content: "Stock des véhicules de direction disponibles." },
       { property: "og:title", content: "Véhicules de direction — Carnet Vendeur" },
       { property: "og:description", content: "Stock des véhicules de direction disponibles." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (

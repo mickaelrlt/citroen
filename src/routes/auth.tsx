@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Connectez-vous pour retrouver vos clients sur tous vos appareils." },
       { property: "og:title", content: "Connexion — Carnet Vendeur Citroën" },
       { property: "og:description", content: "Connectez-vous pour retrouver vos clients sur tous vos appareils." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,

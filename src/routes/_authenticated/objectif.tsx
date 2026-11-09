@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/objectif")({
       { name: "description", content: "Tableau des objectifs mensuels VO, VN, FI et archives." },
       { property: "og:title", content: "Objectifs du mois — Carnet Vendeur" },
       { property: "og:description", content: "Tableau des objectifs mensuels VO, VN, FI et archives." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ObjectifPage,

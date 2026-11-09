@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/")({
       { name: "description", content: "Calendrier, rappels et rendez-vous du vendeur Citroën." },
       { property: "og:title", content: "Carnet Vendeur — Tableau de bord" },
       { property: "og:description", content: "Calendrier, rappels et rendez-vous du vendeur Citroën." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,

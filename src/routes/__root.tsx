@@ -13,7 +13,7 @@ import { LayoutDashboard, Users, FileCheck2, Car, LogOut, CalendarDays, Target, 
 import { Toaster } from "@/components/ui/sonner";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { loadAll, clearAll } from "@/lib/store";
+import { loadAll, clearAll, startDirectionSync } from "@/lib/store";
 
 const NAV = [
   { to: "/", label: "Accueil", icon: LayoutDashboard },
@@ -134,6 +134,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!email) return;
+    return startDirectionSync();
+  }, [email]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));

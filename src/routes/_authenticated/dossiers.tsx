@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/dossiers")({
       { name: "description", content: "Dossiers et sous-dossiers pour ranger vos PDF et images." },
       { property: "og:title", content: "Dossiers — Carnet Vendeur" },
       { property: "og:description", content: "Dossiers et sous-dossiers pour ranger vos PDF et images." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DossiersPage,

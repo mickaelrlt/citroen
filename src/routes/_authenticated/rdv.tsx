@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/rdv")({
       { name: "description", content: "Calendrier des rendez-vous clients et notes du jour." },
       { property: "og:title", content: "Agenda des RDV — Carnet Vendeur" },
       { property: "og:description", content: "Calendrier des rendez-vous clients et notes du jour." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: RdvPage,

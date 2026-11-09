@@ -24,6 +24,10 @@ type State = Record<CollectionKey, BaseItem[]>;
 const EMPTY: BaseItem[] = [];
 let state: State = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [], dossiers: [], fichiers: [] };
 let loaded = false;
+let sessionGeneration = 0;
+let directionRevision = 0;
+let directionRequest = 0;
+let stopDirectionSync: (() => void) | undefined;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
@@ -33,20 +37,26 @@ function setCol(key: CollectionKey, items: BaseItem[]) {
 }
 
 export async function loadAll() {
+  const generation = sessionGeneration;
+  const revision = directionRevision;
   const { data, error } = await supabase.from("items").select("*").order("created_at", { ascending: false });
   if (error) throw error;
+  if (generation !== sessionGeneration) return;
   const next: State = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [], dossiers: [], fichiers: [] };
   for (const r of data ?? []) {
     const k = r.collection as CollectionKey;
     if (!next[k]) continue;
     next[k].push({ ...(r.data as object), id: r.id, createdAt: r.created_at } as BaseItem);
   }
+  if (revision !== directionRevision) next.direction = state.direction;
   state = next;
   loaded = true;
   emit();
 }
 
 export function clearAll() {
+  sessionGeneration += 1;
+  stopDirectionSync?.();
   state = { offres: [], commandes: [], direction: [], rdv: [], notes: [], objectifs: [], dossiers: [], fichiers: [] };
   loaded = false;
   emit();
@@ -65,6 +75,16 @@ function payload(item: Partial<BaseItem>) {
 
 export async function upsert(key: CollectionKey, item: Partial<BaseItem>) {
   const items = state[key];
+  // Shared stock is committed before display, so a failed write is never shown as saved.
+  if (key === "direction") {
+    const merged = { ...items.find((i) => i.id === item.id), ...item };
+    const result = item.id
+      ? await supabase.from("items").update({ data: payload(merged) as never }).eq("id", item.id)
+      : await supabase.from("items").insert({ collection: key, data: payload(item) as never });
+    if (result.error) throw result.error;
+    await refreshDirection();
+    return;
+  }
   if (item.id) {
     const merged = { ...items.find((i) => i.id === item.id), ...item } as BaseItem;
     setCol(key, items.map((i) => (i.id === item.id ? merged : i)));
@@ -80,9 +100,67 @@ export async function upsert(key: CollectionKey, item: Partial<BaseItem>) {
 }
 
 export async function remove(key: CollectionKey, id: string) {
+  if (key === "direction") {
+    const { error } = await supabase.from("items").delete().eq("id", id);
+    if (error) throw error;
+    await refreshDirection();
+    return;
+  }
   setCol(key, state[key].filter((i) => i.id !== id));
   const { error } = await supabase.from("items").delete().eq("id", id);
   if (error) throw error;
+}
+
+async function refreshDirection(isActive: () => boolean = () => true) {
+  const generation = sessionGeneration;
+  const request = ++directionRequest;
+  const { data, error } = await supabase.from("items").select("*").eq("collection", "direction").order("created_at", { ascending: false });
+  if (error) throw error;
+  if (!isActive() || generation !== sessionGeneration || request !== directionRequest) return;
+  directionRevision += 1;
+  setCol("direction", (data ?? []).map((row) => ({ ...(row.data as object), id: row.id, createdAt: row.created_at })));
+}
+
+export function startDirectionSync() {
+  stopDirectionSync?.();
+  let active = true;
+  let running = false;
+  let pending = false;
+  const refresh = async () => {
+    if (!active) return;
+    if (running) { pending = true; return; }
+    running = true;
+    try {
+      await refreshDirection(() => active);
+    } catch {
+      // The periodic refresh retries after a lost connection.
+    } finally {
+      running = false;
+      if (pending && active) { pending = false; void refresh(); }
+    }
+  };
+  const channel = supabase.channel(`direction-${crypto.randomUUID()}`)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "items", filter: "collection=eq.direction" }, () => { void refresh(); })
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "items", filter: "collection=eq.direction" }, () => { void refresh(); })
+    .subscribe((status) => { if (status === "SUBSCRIBED") void refresh(); });
+  // DELETE cannot be collection-filtered safely on a table containing private data.
+  // Read only shared stock periodically to catch deletions and missed events.
+  const timer = window.setInterval(() => { void refresh(); }, 10000);
+  const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+  window.addEventListener("focus", onVisible);
+  document.addEventListener("visibilitychange", onVisible);
+  void refresh();
+  const stop = () => {
+    if (!active) return;
+    active = false;
+    window.clearInterval(timer);
+    window.removeEventListener("focus", onVisible);
+    document.removeEventListener("visibilitychange", onVisible);
+    void supabase.removeChannel(channel);
+    if (stopDirectionSync === stop) stopDirectionSync = undefined;
+  };
+  stopDirectionSync = stop;
+  return stop;
 }
 
 function subscribe(cb: () => void) {
