@@ -1,20 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CrudPage } from "@/components/CrudPage";
 import { fmtDate, type BaseItem } from "@/lib/store";
+import { asPapiers, papiersStatus } from "@/lib/papiers";
 import { groupOrdersByMonth } from "@/lib/order-months";
 
 const isLivre = (i: BaseItem) => Array.isArray(i.statuts) && i.statuts.includes("Livré");
 
 export const STATUTS = [
-  "Papiers non reçus",
-  "Papiers OK",
   "Financement en attente",
   "En attente de livraison",
   "Livré",
 ];
+const PAPIERS_TAG = { red: "Papiers ✗", orange: "Papiers …", green: "Papiers ✓" } as const;
 const STATUT_COLORS: Record<string, string> = {
-  "Papiers non reçus": "tag-red",
-  "Papiers OK": "tag-green",
+  [PAPIERS_TAG.red]: "tag-red",
+  [PAPIERS_TAG.orange]: "tag-orange",
+  [PAPIERS_TAG.green]: "tag-green",
   "Financement en attente": "tag-orange",
   "En attente de livraison": "tag-green",
   "Livré": "tag-blue",
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/commandes")({
         { name: "nom", label: "Nom", section: "Client" },
         { name: "tel", label: "Téléphone", type: "tel", section: "Client" },
         { name: "statuts", label: "Statuts (plusieurs possibles)", type: "multi", options: STATUTS, section: "Client" },
+        { name: "papiers", label: "Papiers", type: "papiers", section: "Client" },
         { name: "dateCommande", label: "Date de la commande", type: "date", section: "Commande" },
         { name: "documentPdf", label: "Bon de commande (PDF)", type: "pdf", section: "Commande", full: true },
         { name: "etat", label: "Neuf / Occasion", type: "select", options: ["Neuf", "Occasion"], section: "Véhicule" },
@@ -60,7 +62,7 @@ export const Route = createFileRoute("/_authenticated/commandes")({
       ]}
       cardTitle={(i) => [i.prenom, i.nom].filter(Boolean).join(" ") || String(i.modele ?? "Commande")}
       tagColors={STATUT_COLORS}
-      cardTags={(i) => [...(Array.isArray(i.statuts) ? (i.statuts as string[]) : []), String(i.etat ?? ""), String(i.financement ?? "")]}
+      cardTags={(i) => [PAPIERS_TAG[papiersStatus(asPapiers(i["papiers"]))], ...(Array.isArray(i.statuts) ? (i.statuts as string[]).filter((s) => STATUTS.includes(s)) : []), String(i.etat ?? ""), String(i.financement ?? "")]}
       cardMeta={(i) => (
         <>
           {i['dateCommande'] ? <p>Commande du {fmtDate(i['dateCommande'])}</p> : null}

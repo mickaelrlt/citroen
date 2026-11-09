@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useCollection, upsert, remove, fmtDate, type BaseItem, type CollectionKey } from "@/lib/store";
+import { PapiersGrid } from "@/components/PapiersGrid";
 import { ClientDocumentButton } from "@/components/ClientDocumentButton";
 import { asClientDocument, uploadClientDocument, deleteClientDocument } from "@/lib/client-document";
 
 export interface Field {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email" | "choice" | "check" | "pdf";
+  type?: "text" | "textarea" | "select" | "multi" | "number" | "date" | "datetime-local" | "tel" | "email" | "choice" | "check" | "pdf" | "papiers";
   showIf?: (e: Partial<BaseItem>) => boolean;
   options?: string[];
   section?: string;
@@ -196,9 +197,11 @@ export function CrudPage(p: Props) {
                     const arr = Array.isArray(raw) ? raw as string[] : [];
                     const document = asClientDocument(raw);
                     return (
-                      <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "textarea" || f.type === "multi" ? "sm:col-span-2" : ""}`}>
+                      <div key={f.name} className={`space-y-1.5 ${f.full || f.type === "papiers" || f.type === "textarea" || f.type === "multi" ? "sm:col-span-2" : ""}`}>
                         <Label htmlFor={f.name}>{f.label}</Label>
-                        {f.type === "pdf" ? (
+                        {f.type === "papiers" ? (
+                          <PapiersGrid value={raw} onChange={(nv) => set(f.name, nv)} />
+                        ) : f.type === "pdf" ? (
                           <div className="space-y-2">
                             {pendingPdf ? <p className="flex min-w-0 items-center gap-2 text-sm"><FileText className="size-4 shrink-0" /><span className="truncate">{pendingPdf.name}</span></p> : document ? <ClientDocumentButton document={document} /> : null}
                             <Input id={f.name} type="file" accept="application/pdf,.pdf" disabled={saving} onChange={(e) => setPendingPdf(e.target.files?.[0] ?? null)} />
